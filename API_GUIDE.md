@@ -59,7 +59,7 @@ The system prioritizes models with **Large Context Windows** for writing the fin
 | **1 (Primary)** | **Google Gemini** | `GOOGLE_API_KEY` | `gemini-2.5-flash` | 1M Token Context, Native Internet Access. |
 | **2 (Backup)** | **Groq** | `GROQ_API_KEY` | `llama3-70b-8192` | Extremely fast, but smaller context window. |
 
-### C. Web Search & Images
+### B. Web Search & Images
 The system needs to access the live internet.
 
 | Priority | Provider | Key Variable | Daily Limit (Free) | Notes |
@@ -67,9 +67,61 @@ The system needs to access the live internet.
 | **1** | **Tavily** | `TAVILY_API_KEY` | ~33 (1k/mo) | Best quality for agents, but low limit. |
 | **2** | **Gemini Search** | `GOOGLE_API_KEY` | ~1,500 | **Best Free Option**. Runs when Tavily key is missing. |
 
-### D. Image Sources
+### C. Image Sources
 
 | Priority | Provider | Key Variable | Hourly Limit (Free) |
 | :--- | :--- | :--- | :--- |
 | **1** | **Pexels** | `PEXELS_API_KEY` | **200** | Best free high-limit option. |
 | **2** | **Unsplash** | `UNSPLASH_ACCESS_KEY` | 50 | Good quality, strict limits. |
+
+## 3. How to Obtain API Keys
+
+### Google Gemini API Key
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Sign in with your Google account
+3. Click on "Get API key" in the sidebar
+4. Create a new API key
+5. Copy and paste it into your `.env` file as `GOOGLE_API_KEY=YOUR_KEY_HERE`
+
+### Groq API Key
+1. Visit [Groq Console](https://console.groq.com/)
+2. Sign up or sign in to your account
+3. Navigate to "API Keys" section
+4. Create a new API key
+5. Copy and paste it into your `.env` file as `GROQ_API_KEY=YOUR_KEY_HERE`
+
+### Tavily API Key
+1. Visit [Tavily AI](https://tavily.com/)
+2. Sign up or sign in to your account
+3. Navigate to API section
+4. Copy your API key
+5. Paste it into your `.env` file as `TAVILY_API_KEY=YOUR_KEY_HERE`
+
+### Pexels API Key
+1. Visit [Pexels API](https://www.pexels.com/api/)
+2. Sign up or sign in to your account
+3. Navigate to your profile and select "Apps"
+4. Create a new app or use an existing one
+5. Copy your API key
+6. Paste it into your `.env` file as `PEXELS_API_KEY=YOUR_KEY_HERE`
+
+### Hugging Face API Key
+1. Visit [Hugging Face](https://huggingface.co/)
+2. Sign up or sign in to your account
+3. Navigate to your profile settings
+4. Go to "Access Tokens" section
+5. Create a new token
+6. Copy and paste it into your `.env` file as `HUGGINGFACE_API_KEY=YOUR_KEY_HERE`
+
+## 4. Docker Environment Variables
+When running with Docker, you can pass these environment variables directly:
+
+```bash
+docker run -e GROQ_API_KEY=your_key -e GOOGLE_API_KEY=your_key jarvis-research-system
+```
+
+Or use a `.env` file with docker-compose:
+
+```bash
+docker-compose --env-file .env up
+```

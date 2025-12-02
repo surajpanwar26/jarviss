@@ -1,27 +1,54 @@
 version: '3.8'
 
 services:
-  backend:
+  jarvis:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+      - "5173:5173"
     volumes:
-      - .:/app
+      - .env:/app/.env
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - TAVILY_API_KEY=${TAVILY_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-    command: uvicorn backend.server:app --host 0.0.0.0 --port 8000 --reload
+      - PEXELS_API_KEY=${PEXELS_API_KEY}
+      - UNSPLASH_ACCESS_KEY=${UNSPLASH_ACCESS_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Alternative setup for development with separate frontend and backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - .env:/app/.env
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - PEXELS_API_KEY=${PEXELS_API_KEY}
+      - UNSPLASH_ACCESS_KEY=${UNSPLASH_ACCESS_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    command: python backend/server.py
 
   frontend:
-    image: node:18-alpine
-    working_dir: /app
-    volumes:
-      - .:/app
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     ports:
       - "5173:5173"
-    command: sh -c "npm install && npm run dev -- --host"
+    volumes:
+      - .:/app
     depends_on:
       - backend

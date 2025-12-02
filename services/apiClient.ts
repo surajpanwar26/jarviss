@@ -1,6 +1,6 @@
 import { ResearchResult, ChatMessage } from "../types";
 
-const API_URL = "http://localhost:8000/api";
+const API_URL = "http://localhost:8001/api";
 
 export const api = {
   health: async () => {
@@ -58,18 +58,17 @@ export const api = {
 
   chat: async (history: ChatMessage[], context: string, question: string) => {
     try {
-      const response = await fetch(`${API_URL}/chat`, {
+      const response = await fetch(`${API_URL}/question`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          history: history.map(h => ({ role: h.role, content: h.content })), 
-          context: context || "", 
-          question: question 
+          question: question,
+          context: context || ""
         })
       });
       
       if (!response.ok) {
-         let errorMessage = "Chat failed";
+         let errorMessage = "Q&A failed";
          try {
             const errorData = await response.json();
             if (errorData.detail) errorMessage = errorData.detail;
@@ -81,7 +80,7 @@ export const api = {
       const data = await response.json();
       return data.answer;
     } catch (error) {
-      console.error("Chat API Error:", error);
+      console.error("Q&A API Error:", error);
       throw error;
     }
   }

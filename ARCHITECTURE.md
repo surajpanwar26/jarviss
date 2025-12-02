@@ -7,39 +7,46 @@ This document outlines the end-to-end data flow of the JARVIS application, desig
 The system is built on a **Multi-Agent Architecture** powered by Google Gemini 2.5. Unlike traditional RAG (Retrieval Augmented Generation) pipelines that perform a single search, JARVIS employs a planning and execution loop.
 
 ### Core Components
-*   **Planner Agent**: Decomposes user topics into specific research sub-tasks.
-*   **Researcher Agent**: Executes web scraping and fact-gathering.
-*   **Writer Agent**: Synthesizes structured reports from gathered contexts.
-*   **UI Client**: A React-based interface that visualizes the agent's thought process in real-time.
+*   **Chief Agent**: Orchestrates all other agents
+*   **Researcher Agent**: Executes web scraping and fact-gathering using Tavily API
+*   **Image Agent**: Extracts and processes visual assets
+*   **Source Agent**: Processes and validates sources
+*   **Report Agent**: Synthesizes structured reports using Google Gemini
+*   **AI Assistant Agent**: Handles Q&A functionality
+*   **Document Analyzer Agent**: Analyzes uploaded documents
+*   **UI Client**: A React-based interface that visualizes the agent's thought process in real-time
 
 ## 2. End-to-End Data Flow
 
 ### Step 1: User Input
 The user selects a mode (Quick or Deep) and enters a topic (e.g., "Impact of AI on Healthcare").
 
-### Step 2: Planning Phase (The "Brain")
-*   **Input**: User Topic.
-*   **Process**: The `ResearchAgent` sends the topic to Gemini Flash with a system instruction to act as a Project Planner.
-*   **Output**: A JSON array of search queries.
-    *   *Example*: `["AI in healthcare statistics 2024", "Regulatory challenges of medical AI", "Cost reduction AI hospitals"]`
+### Step 2: Agent Orchestration
+The Chief Agent determines the type of request and routes it to the appropriate specialized agent:
 
-### Step 3: Execution Phase (The "Hands")
-The system iterates through the generated plan. For each query:
-1.  **Tool Call**: The agent invokes the `googleSearch` tool provided by the Gemini SDK.
-2.  **Scraping**: Google's infrastructure performs the crawl and returns:
-    *   `text`: A summarized snippet of the content.
-    *   `groundingChunks`: Metadata containing Source Title and URI.
-3.  **Data Extraction**:
-    *   **Text**: Accumulated into a `context` buffer.
-    *   **Images**: Extracted via Regex (`![alt](url)`) from the markdown response.
-    *   **Sources**: Parsed from `groundingChunks` and deduped.
-4.  **Streaming**: Events (`search`, `thought`, `source`) are emitted to the UI to update the "Agent Operations" log.
+1. **Research Requests**: 
+   - Researcher Agent gathers information using Tavily API
+   - Image Agent extracts visual assets
+   - Source Agent processes and validates sources
+   - Report Agent generates the final report using Google Gemini
 
-### Step 4: Synthesis Phase (The "Voice")
-*   **Input**: The accumulated `context` buffer (raw text from all searches) + Original Topic.
-*   **Process**: A final call to Gemini 2.5 Flash (with `thinkingConfig` enabled for Deep mode).
-*   **Prompt**: "Write a comprehensive technical report based *only* on the following context..."
-*   **Output**: A clean Markdown report.
+2. **Q&A Requests**:
+   - AI Assistant Agent answers questions using the research context
+
+3. **Document Analysis Requests**:
+   - Document Analyzer Agent analyzes uploaded documents using Google Gemini
+
+### Step 3: Data Processing
+Each agent processes its specific task and updates the shared state:
+
+*   **Text**: Accumulated into a `context` buffer
+*   **Images**: Extracted and stored for visualization
+*   **Sources**: Parsed, deduplicated, and validated
+
+### Step 4: Synthesis Phase
+*   **Input**: The accumulated `context` buffer + Original Topic
+*   **Process**: Final call to Google Gemini 2.5 Flash for report generation
+*   **Output**: A clean Markdown report
 
 ## 3. WebSocket / Event Protocol
 
@@ -56,6 +63,9 @@ interface AgentEvent {
 
 ## 4. Document Intelligence
 For local files:
-1.  **Upload**: File is converted to Base64.
-2.  **Ingestion**: Sent directly to Gemini 2.5 Flash with the file mime-type.
-3.  **Analysis**: The model is instructed to perform *structural analysis* (Pattern recognition, Entity extraction) rather than simple summarization.
+1.  **Upload**: File is converted to Base64
+2.  **Ingestion**: Sent directly to Google Gemini 2.5 Flash with the file mime-type
+3.  **Analysis**: The model is instructed to perform *structural analysis* (Pattern recognition, Entity extraction) rather than simple summarization
+
+## 5. Agent Communication
+Agents communicate through a shared state object that contains all necessary information for each step of the process. The Chief Agent orchestrates the workflow by determining which agents to activate based on the user request type.
