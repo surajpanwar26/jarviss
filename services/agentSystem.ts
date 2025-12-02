@@ -19,11 +19,11 @@ class EditorAgent extends BaseAgent {
     this.emit({ type: 'agent_action', agentName: 'Editor', message: 'Analyzing request and outlining research strategy...', timestamp: new Date() });
     
     const count = state.isDeep ? 5 : 3;
-    // Fix: Corrected Template Literal syntax below
+    // Fix: Ensure template literal is simple and clean
     const prompt = `Topic: "${state.topic}"
-    Role: You are the Research Editor. Plan the outline.
-    Task: Generate ${count} specific, targeted search queries to cover this topic comprehensively.
-    Format: Return ONLY a raw JSON array of strings.`;
+Role: You are the Research Editor. Plan the outline.
+Task: Generate ${count} specific, targeted search queries to cover this topic comprehensively.
+Format: Return ONLY a raw JSON array of strings.`;
 
     try {
       const text = await llm.generate({
@@ -32,10 +32,14 @@ class EditorAgent extends BaseAgent {
         jsonMode: true
       });
       
-      const queries = JSON.parse(text.replace(/```json|```/g, '').trim());
+      // Clean up potential markdown code blocks from response
+      const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const queries = JSON.parse(jsonStr);
+      
       this.emit({ type: 'plan', agentName: 'Editor', message: `Research Outline: ${queries.join(', ')}`, timestamp: new Date() });
       return { ...state, plan: queries };
     } catch (e) {
+      console.error("Planning Error", e);
       this.emit({ type: 'error', message: 'Planning failed, reverting to basic search.', timestamp: new Date() });
       return { ...state, plan: [state.topic] };
     }
@@ -160,7 +164,13 @@ export class ResearchWorkflow {
 
   public async start(topic: string, isDeep: boolean) {
     // 1. Check if Backend is available
-    const useBackend = await api.health();
+    let useBackend = false;
+    try {
+      // Short timeout check
+      useBackend = await api.health();
+    } catch (e) {
+      console.warn("Backend unavailable, default to frontend agents.");
+    }
     
     if (useBackend) {
        this.emit({ type: 'info', message: 'Connected to Neural Backend (Python/LangGraph)', timestamp: new Date() });
@@ -173,7 +183,9 @@ export class ResearchWorkflow {
             timestamp: new Date() 
          });
        } catch (e: any) {
+         console.error("Backend Task Failed", e);
          this.emit({ type: 'error', message: `Backend Error: ${e.message}`, timestamp: new Date() });
+         this.emit({ type: 'info', message: 'Falling back to local agents...', timestamp: new Date() });
          // Fallback to frontend agents if backend fails
          this.runFrontendAgents(topic, isDeep);
        }

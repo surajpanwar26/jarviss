@@ -65,14 +65,15 @@ const geminiSearch = async (query: string): Promise<SearchResult> => {
   
   const ai = new GoogleGenAI({ apiKey: config.googleApiKey });
   
+  // Refined prompt to ensure images are returned in markdown format for extraction
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: `You are a search engine. Perform a comprehensive real-time Google Search for: "${query}".
     
-    Provide a very detailed summary of the findings, prioritizing data, statistics, and concrete facts.
-    Include as many relevant details as possible.
-    
-    If you find images, include them in the text as Markdown: ![alt text](url).`,
+    1. Provide a very detailed summary of the findings, prioritizing data, statistics, and concrete facts.
+    2. IMPORTANT: If you find relevant images in the search results, you MUST embed them in the text using Markdown format: ![alt text](url).
+    3. Try to include at least 3 relevant images if possible.
+    `,
     config: { 
       tools: [{ googleSearch: {} }],
       thinkingConfig: { thinkingBudget: 0 } 
@@ -92,6 +93,7 @@ const geminiSearch = async (query: string): Promise<SearchResult> => {
     });
   }
 
+  // Improved Regex to catch various markdown image formats
   const imgRegex = /!\[.*?\]\((.*?)\)/g;
   let match;
   while ((match = imgRegex.exec(text)) !== null) {
@@ -161,7 +163,7 @@ export const performSearch = async (query: string): Promise<SearchResult> => {
   }
 
   // --- Image Augmentation ---
-  // If no images found (or few), try external providers with higher limits first
+  // Only augment if we have keys (Pexels/Unsplash). If not, we rely on Gemini's embedded images.
   if (result.images.length < 3) {
     let extraImages: string[] = [];
     
