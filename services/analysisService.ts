@@ -1,10 +1,6 @@
 import { ResearchResult, ChatMessage } from "../types";
 import { getLLMProvider } from "./llmProvider";
-import { GoogleGenAI } from "@google/genai"; // Still needed for Multimodal (File Upload) specifically
-
-// Note: Standard LLM Providers (OpenAI/Groq) usually don't support direct PDF ingestion via base64 in the same way Gemini does.
-// For Doc Analysis, we will stick to Gemini if available, or try to text-decode if using Groq (simplified for this demo).
-
+import { GoogleGenAI } from "@google/genai";
 import { config } from "./config";
 
 /**
@@ -12,8 +8,8 @@ import { config } from "./config";
  */
 export const analyzeDocument = async (fileBase64: string, mimeType: string): Promise<ResearchResult> => {
   try {
-    // Special Case: For PDF/Image analysis, Gemini is vastly superior to text-only LLMs like Llama3.
-    // We try to use Gemini explicitly for this task if the key exists.
+    // 1. Preferred: Multimodal Gemini (if key exists)
+    // This allows analyzing images, PDFs with charts, etc.
     if (config.googleApiKey) {
        const ai = new GoogleGenAI({ apiKey: config.googleApiKey });
        const response = await ai.models.generateContent({
@@ -35,23 +31,42 @@ export const analyzeDocument = async (fileBase64: string, mimeType: string): Pro
       };
     }
 
-    // Fallback for Groq (Text Only - This would fail for PDFs in a real app without a PDF parser, 
-    // but we'll assume text/csv for the fallback path or fail gracefully).
-    if (mimeType.includes('text') || mimeType.includes('csv')) {
+    // 2. Fallback: Text-based LLMs (Groq / Hugging Face)
+    // These models cannot see images or read binary PDFs natively via API usually.
+    // We decode base64 to text (works for .txt, .csv, .md, .json, .code).
+    if (mimeType.startsWith('text/') || mimeType.includes('csv') || mimeType.includes('json') || mimeType.includes('javascript') || mimeType.includes('typescript')) {
        const llm = getLLMProvider();
-       const decoded = atob(fileBase64); // Simple decode for text files
+       let decodedContent = "";
+       try {
+         decodedContent = atob(fileBase64);
+       } catch (e) {
+         throw new Error("Could not decode file content. Please upload a plain text or CSV file for this provider.");
+       }
+
+       // Truncate to avoid context limits (approx 30k chars is safe for most models)
+       const truncatedContent = decodedContent.substring(0, 30000); 
+       
        const report = await llm.generate({
-         prompt: `Analyze this document content:\n\n${decoded.substring(0, 20000)}...`, // Truncate for token limits
-         systemInstruction: "You are a Data Analyst."
+         prompt: `Analyze this document content:\n\n${truncatedContent}...\n\n(Content truncated for analysis)`,
+         systemInstruction: "You are an Expert Data Analyst. Provide a detailed summary and insight report based on the file content provided."
        });
-       return { report, sources: [{ title: "Uploaded Text", uri: "#local-file" }], images: [] };
+       
+       return { 
+         report, 
+         sources: [{ title: "Uploaded Text File", uri: "#local-file" }], 
+         images: [] 
+       };
     }
 
-    throw new Error("Document analysis requires Gemini API Key for multimodal support.");
+    throw new Error("Current Provider (Groq/HF) supports Text/CSV files only. Please add a Google API Key for PDF/Image analysis.");
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Doc analysis failed:", error);
-    throw error;
+    return {
+      report: `**Analysis Error**\n\nCould not process document: ${error.message}`,
+      sources: [],
+      images: []
+    };
   }
 };
 
@@ -68,11 +83,15 @@ export const askFollowUp = async (
     
     // Format history for context
     const conversation = history.map(h => `${h.role.toUpperCase()}: ${h.content}`).join('\n');
-    const prompt = `REFERENCE CONTEXT:\n${context}\n\nCHAT HISTORY:\n${conversation}\n\nUSER QUESTION: ${question}`;
+    
+    // Ensure context isn't massive
+    const safeContext = context.substring(0, 20000);
+
+    const prompt = `REFERENCE CONTEXT:\n${safeContext}\n\nCHAT HISTORY:\n${conversation}\n\nUSER QUESTION: ${question}`;
     
     return await llm.generate({
       prompt,
-      systemInstruction: "You are JARVIS. Answer based on the provided Context."
+      systemInstruction: "You are JARVIS. Answer the user's question accurately based *only* on the provided Reference Context. If the answer is not in the context, state that."
     });
   } catch (error) {
     console.error("Chat failed:", error);
