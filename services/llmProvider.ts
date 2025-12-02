@@ -1,5 +1,9 @@
+
 import { GoogleGenAI } from "@google/genai";
-import { config, hasKey } from "./config";
+import { config, hasKey, logConfigStatus } from "./config";
+
+// Initialize logging once
+logConfigStatus();
 
 // --- Types ---
 interface GenerationParams {
@@ -35,6 +39,7 @@ class GroqProvider implements LLMProvider {
     }
 
     try {
+      // console.log("Calling Groq API...");
       const response = await fetch(this.baseUrl, {
         method: "POST",
         headers: {
@@ -51,6 +56,7 @@ class GroqProvider implements LLMProvider {
 
       if (!response.ok) {
          const err = await response.text();
+         console.error("Groq Error Response:", err);
          throw new Error(`Groq API Error (${response.status}): ${err}`);
       }
       const data = await response.json();
