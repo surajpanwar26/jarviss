@@ -1,9 +1,21 @@
+// In Vite (local development), process.env is polyfilled by the define plugin in vite.config.ts
+// In some other environments, it might be available directly.
+// We use a safe access pattern here.
+
+const getEnv = (key: string): string | undefined => {
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key] || process.env[`REACT_APP_${key}`];
+  }
+  return undefined;
+};
+
 export const config = {
-  groqApiKey: process.env.REACT_APP_GROQ_API_KEY || process.env.GROQ_API_KEY,
-  tavilyApiKey: process.env.REACT_APP_TAVILY_API_KEY || process.env.TAVILY_API_KEY,
-  huggingFaceApiKey: process.env.REACT_APP_HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_API_KEY,
-  unsplashAccessKey: process.env.REACT_APP_UNSPLASH_ACCESS_KEY || process.env.UNSPLASH_ACCESS_KEY,
-  googleApiKey: process.env.API_KEY || process.env.REACT_APP_GOOGLE_API_KEY,
+  groqApiKey: getEnv('GROQ_API_KEY'),
+  tavilyApiKey: getEnv('TAVILY_API_KEY'),
+  huggingFaceApiKey: getEnv('HUGGINGFACE_API_KEY'),
+  unsplashAccessKey: getEnv('UNSPLASH_ACCESS_KEY'),
+  // Support both standard names for Google Key
+  googleApiKey: getEnv('API_KEY') || getEnv('GOOGLE_API_KEY'),
 };
 
 export const hasKey = (key: string | undefined): boolean => !!key && key.length > 0;

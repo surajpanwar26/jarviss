@@ -37,7 +37,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full relative overflow-hidden bg-[#0B0F19] p-6">
+    <div className="flex flex-col items-center justify-center h-full relative overflow-hidden p-6">
       
       {/* Brand Header */}
       <div className="z-10 flex flex-col items-center mb-12 animate-fade-in">
@@ -54,10 +54,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       <div className="z-10 w-full max-w-3xl flex flex-col items-center animate-fade-in animation-delay-200">
         
         {/* Pill Tabs */}
-        <div className="flex p-1 bg-white/5 backdrop-blur-md rounded-full border border-white/10 mb-8 relative">
+        <div className="flex p-1 bg-white/5 backdrop-blur-md rounded-full border border-white/10 mb-8 relative shadow-lg">
            {/* Slider Background */}
            <div 
-             className={`absolute top-1 bottom-1 rounded-full bg-cyan-600 shadow-[0_0_20px_rgba(8,145,178,0.4)] transition-all duration-300 ease-out z-0`}
+             className={`absolute top-1 bottom-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-300 ease-out z-0`}
              style={{
                left: activeTab === 'QUICK' ? '4px' : activeTab === 'DEEP' ? '33.33%' : '66.66%',
                width: 'calc(33.33% - 4px)',
@@ -107,7 +107,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                  <button 
                    onClick={() => handleLaunch()}
                    disabled={!query.trim()}
-                   className="mx-2 px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-cyan-50 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:scale-100 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                   className="mx-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none disabled:scale-100 shadow-lg border border-white/10 tracking-wide"
                  >
                    INITIATE
                  </button>

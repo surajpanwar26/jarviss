@@ -1,20 +1,43 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# JARVIS Research System
 
-# Run and deploy your AI Studio app
+An advanced, agentic web research application powered by Google Gemini, Groq, and Tavily.
 
-This contains everything you need to run your app locally.
+## Setup Instructions
 
-View your app in AI Studio: https://ai.studio/apps/drive/1O3Ndnn107JaVOqHzR8XokecxTQO2pY_f
+### 1. Install Dependencies
+Run the following command in the project root:
+```bash
+npm install
+```
 
-## Run Locally
+### 2. Configure Environment Variables
+Create a `.env` file in the root directory (if not already present) and add your API keys:
+```env
+# Primary LLM (Fastest)
+GROQ_API_KEY=gsk_...
 
-**Prerequisites:**  Node.js
+# Primary Search (Best Results)
+TAVILY_API_KEY=tvly-...
 
+# Fallback / Multimodal
+API_KEY=... (Google Gemini API Key)
+HUGGINGFACE_API_KEY=...
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+# Image Search
+UNSPLASH_ACCESS_KEY=...
+```
+
+### 3. Run Locally
+Start the development server:
+```bash
+npm run dev
+```
+
+Open the link shown in your terminal (usually `http://localhost:5173`).
+
+## Architecture
+This project uses:
+- **React 18** + **Vite** for the frontend.
+- **Tailwind CSS** for styling (loaded via CDN).
+- **LangGraph-style Agents** (running in-browser via TypeScript).
+- **Google GenAI SDK** and **Groq API** for intelligence.
