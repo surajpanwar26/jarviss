@@ -27,8 +27,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install frontend dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (not just production) to enable build
+RUN npm install
 
 # Copy frontend code
 COPY . .
@@ -55,13 +55,12 @@ COPY --from=backend-builder /app/.env ./.env
 # Copy frontend build from frontend-builder stage
 COPY --from=frontend-builder /app/dist ./dist
 
-# Expose ports
-EXPOSE 8000
-EXPOSE 5173
+# Expose port (Render.com will set PORT environment variable)
+EXPOSE 10000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:10000/ || exit 1
 
 # Start backend server
-CMD ["python", "backend/server.py"]
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:10000", "backend.server:app"]
