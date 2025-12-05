@@ -75,21 +75,21 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onLogout }) => {
 
            <button 
              onClick={() => setActiveTab('QUICK')}
-             className={`relative z-10 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors w-32 flex items-center justify-center gap-2 ${activeTab === 'QUICK' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+             className={`relative z-10 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors flex-1 flex items-center justify-center gap-2 ${activeTab === 'QUICK' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
            >
-             <ZapIcon className="w-4 h-4" /> Quick
+             <ZapIcon className="w-4 h-4" /> Quick Research
            </button>
            <button 
              onClick={() => setActiveTab('DEEP')}
-             className={`relative z-10 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors w-32 flex items-center justify-center gap-2 ${activeTab === 'DEEP' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+             className={`relative z-10 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors flex-1 flex items-center justify-center gap-2 ${activeTab === 'DEEP' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
            >
-             <LayersIcon className="w-4 h-4" /> Deep
+             <LayersIcon className="w-4 h-4" /> Deep Research
            </button>
            <button 
              onClick={() => setActiveTab('DOCS')}
-             className={`relative z-10 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors w-32 flex items-center justify-center gap-2 ${activeTab === 'DOCS' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+             className={`relative z-10 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors flex-1 flex items-center justify-center gap-2 ${activeTab === 'DOCS' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
            >
-             <ActivityIcon className="w-4 h-4" /> Docs
+             <ActivityIcon className="w-4 h-4" /> Doc Analysis
            </button>
         </div>
 
