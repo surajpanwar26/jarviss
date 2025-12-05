@@ -147,55 +147,103 @@ export const DocAnalysisPage: React.FC<DocAnalysisPageProps> = ({ initialFile, o
          </div>
        </div>
 
-       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 min-h-0 overflow-hidden">
-          {/* Left Column: Upload or Report */}
-          <div className="flex flex-col gap-4 overflow-hidden h-full">
-             {status === ResearchStatus.IDLE || status === ResearchStatus.PLANNING ? (
-               // If idle and no initial file processed yet (or reset), show uploader
-               !initialFile ? (
-                 <div className="h-full flex flex-col justify-center">
-                    <FileUploader onFileSelect={handleFileUpload} isLoading={status !== ResearchStatus.IDLE} />
-                 </div>
-               ) : (
-                 <div className="h-full flex items-center justify-center text-slate-500 font-mono animate-pulse">
-                    Ingesting Document Structure...
-                 </div>
-               )
-             ) : (
-               <div className="flex-1 glass-card rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-2xl">
-                 <div className="p-3 bg-white/5 border-b border-white/10 text-xs font-bold text-slate-300 flex justify-between">
-                    <span>ANALYSIS REPORT</span>
-                    <span className="text-purple-400">RAG ENABLED</span>
-                 </div>
-                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-black/20">
-                    <MarkdownRenderer content={result?.report || ""} />
-                 </div>
-               </div>
-             )}
-             
-             {/* Logs */}
-             {(status !== ResearchStatus.IDLE) && (
-               <div className="h-48 bg-black/20 rounded-xl p-3 border border-white/10 overflow-hidden flex flex-col">
-                 <div className="text-[10px] text-slate-500 font-bold mb-2 uppercase">Processing Logs</div>
-                 <ResearchLogs logs={logs} />
-               </div>
-             )}
+       <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-0 overflow-hidden">
+          {/* Left Column: Logs (Smaller) */}
+          <div className="xl:col-span-3 flex flex-col gap-6 overflow-hidden h-full">
+            {/* Logs Container with Loading State */}
+            <div className="flex-1 bg-black/20 rounded-xl p-3 border border-white/10 overflow-hidden flex flex-col relative">
+              <div className="text-[10px] text-slate-500 font-bold mb-2 uppercase flex justify-between items-center">
+                <span>Processing Logs</span>
+                {(status === ResearchStatus.PLANNING || status === ResearchStatus.SYNTHESIZING) && (
+                  <span className="flex items-center text-cyan-400">
+                    <span className="flex w-2 h-2 mr-1">
+                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-cyan-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                    </span>
+                    LIVE
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 overflow-hidden bg-black/40 rounded border border-white/5 p-2">
+                <ResearchLogs logs={logs} />
+              </div>
+              
+              {/* Loading Overlay for Logs */}
+              {(status === ResearchStatus.PLANNING || status === ResearchStatus.SYNTHESIZING) && (
+                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10">
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                    <span className="text-xs text-cyan-400 font-mono">PROCESSING</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
-          {/* Right Column: AI Chatbot */}
-          <div className="flex flex-col h-full">
-            {result ? (
-               <div className="h-full rounded-xl overflow-hidden shadow-2xl">
-                 <ChatPanel messages={chatMessages} onSendMessage={handleChat} isLoading={isLoadingChat} />
-               </div>
-            ) : (
-               <div className="h-full border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center text-slate-600 bg-white/5">
-                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+          {/* Middle Column: Report Analysis (Larger/Main Focus) */}
+          <div className="xl:col-span-6 flex flex-col overflow-hidden h-full">
+            <div className="flex-1 glass-card rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-2xl relative">
+              <div className="p-3 bg-white/5 border-b border-white/10 text-xs font-bold text-slate-300 flex justify-between items-center">
+                <span>ANALYSIS REPORT</span>
+                <span className="text-purple-400">RAG ENABLED</span>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-black/20 relative">
+                {/* Loading State for Report */}
+                {(status === ResearchStatus.PLANNING || status === ResearchStatus.SYNTHESIZING) && !result && (
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center z-10">
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-12 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                      <span className="text-sm text-purple-400 font-mono">ANALYZING DOCUMENT</span>
+                      <span className="text-xs text-slate-500 mt-1">RAG Protocol Engaged...</span>
+                    </div>
+                  </div>
+                )}
+                
+                {result ? (
+                  <MarkdownRenderer content={result.report || ""} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-600">
+                    <div className="text-center">
+                      <ActivityIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p className="text-sm font-mono">Upload a document to begin analysis</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Right Column: AI Chatbot (Smaller) */}
+          <div className="xl:col-span-3 flex flex-col h-full">
+            <div className="h-full rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
+              {/* Loading State for Chat */}
+              {result && (status === ResearchStatus.PLANNING || status === ResearchStatus.SYNTHESIZING) && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10">
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                    <span className="text-xs text-cyan-400 font-mono">INITIALIZING CHAT</span>
+                  </div>
+                </div>
+              )}
+              
+              {result ? (
+                <ChatPanel messages={chatMessages} onSendMessage={handleChat} isLoading={isLoadingChat} />
+              ) : (
+                <div className="h-full border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center text-slate-600 bg-white/5 relative">
+                  <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10">
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 border-2 border-slate-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                      <span className="text-xs text-slate-500 font-mono">AWAITING ANALYSIS</span>
+                    </div>
+                  </div>
+                  
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                     <ActivityIcon className="w-8 h-8 opacity-20" />
-                 </div>
-                 <p className="text-sm font-mono">Upload a document to enable AI Chatbot</p>
-               </div>
-            )}
+                  </div>
+                  <p className="text-sm font-mono">Upload a document to enable AI Chatbot</p>
+                </div>
+              )}
+            </div>
           </div>
        </div>
     </div>
