@@ -89,6 +89,19 @@
       .perspective-1000 {
         perspective: 1000px;
       }
+      
+      /* Wave Animation */
+      @keyframes wave {
+        0%, 60%, 100% {
+          transform: scaleY(0.5);
+        }
+        30% {
+          transform: scaleY(1);
+        }
+      }
+      .animate-wave {
+        animation: wave 1.5s infinite ease-in-out;
+      }
     </style>
 <script type="importmap">
 {

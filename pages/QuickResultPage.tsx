@@ -3,6 +3,7 @@ import { ResearchWorkflow } from '../services/agentSystem';
 import { ResearchLogs } from '../components/ResearchLogs';
 import { MarkdownRenderer } from '../components/MarkdownRenderer';
 import { ChatPanel } from '../components/ChatPanel';
+import { WaveLoader } from '../components/WaveLoader';
 import { ZapIcon, ArrowLeftIcon, DownloadIcon, FileIcon, ActivityIcon } from '../components/Icons';
 import { ResearchStatus, LogEntry, AgentEvent, ResearchResult, ChatMessage } from '../types';
 import { askFollowUp } from '../services/analysisService';
@@ -160,45 +161,24 @@ export const QuickResultPage: React.FC<QuickResultPageProps> = ({ initialQuery, 
         </div>
       </div>
 
-      {/* 3-Column Layout: Progress (Left) | Report (Middle) | Chat (Right) with Improved Sizing */}
-      <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 overflow-hidden min-h-0">
+      {/* 3-Column Layout: Progress (Left) | Report (Middle) | Chat (Right) */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden min-h-0">
         
-        {/* Left: Agent Progress (Smaller) */}
-        <div className="xl:col-span-3 flex flex-col overflow-hidden h-full">
-            <div className="flex-1 bg-black/20 rounded-xl border border-white/10 p-3 flex flex-col overflow-hidden relative">
-              <h3 className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2 flex items-center justify-between">
-                <span className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-2 animate-pulse"></span>
-                  Agent Progress
-                </span>
-                {(status === ResearchStatus.PLANNING || status === ResearchStatus.SEARCHING || status === ResearchStatus.SYNTHESIZING) && (
-                  <span className="flex items-center text-amber-400">
-                    <span className="flex w-2 h-2 mr-1">
-                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-amber-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                    </span>
-                    LIVE
-                  </span>
-                )}
+        {/* Left: Agent Progress */}
+        <div className="lg:col-span-3 flex flex-col overflow-hidden h-full">
+            <div className="flex-1 bg-black/20 rounded-xl border border-white/10 p-3 flex flex-col overflow-hidden shadow-xl">
+              <h3 className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2 flex items-center">
+                <span className="w-2 h-2 rounded-full bg-amber-500 mr-2 animate-pulse"></span>
+                Agent Progress
               </h3>
               <div className="flex-1 overflow-hidden bg-black/40 rounded border border-white/5 p-2">
                 <ResearchLogs logs={logs} />
               </div>
-              
-              {/* Loading Overlay for Logs */}
-              {(status === ResearchStatus.PLANNING || status === ResearchStatus.SEARCHING || status === ResearchStatus.SYNTHESIZING) && (
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10">
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <span className="text-xs text-amber-400 font-mono">PROCESSING</span>
-                  </div>
-                </div>
-              )}
             </div>
         </div>
 
-        {/* Middle: Report (Larger/Main Focus) */}
-        <div className="xl:col-span-6 flex flex-col overflow-hidden h-full">
+        {/* Middle: Report (Wider) */}
+        <div className="lg:col-span-6 flex flex-col overflow-hidden h-full">
           <div className="flex-1 glass-card rounded-2xl border border-white/10 overflow-hidden flex flex-col shadow-2xl relative">
              {/* Report Header */}
              <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between">
@@ -207,55 +187,38 @@ export const QuickResultPage: React.FC<QuickResultPageProps> = ({ initialQuery, 
                 {status === ResearchStatus.SYNTHESIZING && <span className="text-xs text-slate-500 animate-pulse">Writing Brief...</span>}
              </div>
 
-             {/* Content with Loading State */}
-             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-black/20 relative">
+             {/* Content */}
+             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-black/20">
                 {status === ResearchStatus.IDLE && !streamedReport ? (
                    <div className="flex flex-col items-center justify-center h-full opacity-30 pointer-events-none select-none">
                       <ZapIcon className="w-16 h-16 mb-4 text-amber-900" />
                       <div className="text-sm font-mono text-amber-800">INITIALIZING AGENTS...</div>
                    </div>
                 ) : (
-                   <>
-                      <MarkdownRenderer content={streamedReport || (status === ResearchStatus.COMPLETED ? result?.report || "" : "")} />
-                      {/* Cursor */}
-                      {(status === ResearchStatus.SYNTHESIZING || status === ResearchStatus.SEARCHING) && (
-                         <div className="inline-block w-1.5 h-4 bg-amber-500 animate-pulse ml-1 align-middle"></div>
-                      )}
-                      {status === ResearchStatus.ERROR && !streamedReport && (
-                        <div className="text-red-400 text-center font-mono mt-10">
-                          System Failure. Check logs for details.
-                        </div>
-                      )}
-                   </>
-                )}
-                
-                {/* Loading Overlay for Report */}
-                {(status === ResearchStatus.PLANNING || status === ResearchStatus.SEARCHING || status === ResearchStatus.SYNTHESIZING) && !streamedReport && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center z-10">
-                    <div className="flex flex-col items-center">
-                      <div className="w-12 h-12 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                      <span className="text-sm text-amber-400 font-mono">AGENT IN PROGRESS</span>
-                      <span className="text-xs text-slate-500 mt-1">Processing request...</span>
-                    </div>
-                  </div>
+                   (status === ResearchStatus.SYNTHESIZING || status === ResearchStatus.SEARCHING) && !streamedReport ? (
+                     <WaveLoader message="Generating Quick Briefing..." />
+                   ) : (
+                     <>
+                        <MarkdownRenderer content={streamedReport || (status === ResearchStatus.COMPLETED ? result?.report || "" : "")} />
+                        {/* Cursor */}
+                        {(status === ResearchStatus.SYNTHESIZING || status === ResearchStatus.SEARCHING) && streamedReport && (
+                           <div className="inline-block w-1.5 h-4 bg-amber-500 animate-pulse ml-1 align-middle"></div>
+                        )}
+                        {status === ResearchStatus.ERROR && !streamedReport && (
+                          <div className="text-red-400 text-center font-mono mt-10">
+                            System Failure. Check logs for details.
+                          </div>
+                        )}
+                     </>
+                   )
                 )}
              </div>
           </div>
         </div>
 
-        {/* Right: Ask Assistant (Smaller) */}
-        <div className="xl:col-span-3 flex flex-col h-full overflow-hidden">
-           <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-black/20 h-full relative">
-              {/* Loading Overlay for Chat */}
-              {status === ResearchStatus.PLANNING && (
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10">
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <span className="text-xs text-amber-400 font-mono">INITIALIZING CHAT</span>
-                  </div>
-                </div>
-              )}
-              
+        {/* Right: Ask Assistant */}
+        <div className="lg:col-span-3 flex flex-col h-full overflow-hidden">
+           <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-black/20 h-full">
               <ChatPanel messages={chatMessages} onSendMessage={handleChat} isLoading={isLoadingChat} />
            </div>
         </div>

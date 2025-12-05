@@ -54,10 +54,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSendMessage, i
         )}
         {isLoading && (
           <div className="flex justify-start">
-             <div className="bg-white/10 border border-white/10 rounded-lg p-3 rounded-bl-none flex space-x-1 items-center h-10">
-                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div>
-                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-100"></div>
-                <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-200"></div>
+             <div className="bg-white/10 border border-white/10 rounded-lg p-3 rounded-bl-none flex items-center h-10">
+                <div className="text-slate-400 text-sm font-mono">Thinking...</div>
              </div>
           </div>
         )}

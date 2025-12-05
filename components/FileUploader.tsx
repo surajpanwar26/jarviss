@@ -67,7 +67,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, isLoad
         accept=".pdf,.txt,.md,.csv"
       />
       
-      {selectedFileName ? (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center h-full">
+          <div className="text-slate-400 text-sm font-mono">Processing file...</div>
+        </div>
+      ) : selectedFileName ? (
         <div className="flex flex-col items-center animate-fade-in text-center p-4">
           <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mb-4">
             <FileTextIcon className="w-8 h-8 text-cyan-400" />

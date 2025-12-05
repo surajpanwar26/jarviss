@@ -124,7 +124,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["Access-Control-Allow-Origin"],
 )
 
 # Import agents
@@ -289,7 +288,7 @@ async def analyze_document(file_base64: str, mime_type: str):
         )
         
     except Exception as e:
-        logger.error(f"Document analysis error: {str(e)}", exc_info=True)
+        logger.error(f"Document analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Document analysis failed: {str(e)}")
 
 @app.post("/api/research")
